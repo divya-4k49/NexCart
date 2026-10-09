@@ -1,0 +1,51 @@
+# ==============================================================================
+# NexCart - Git Ignore Configuration
+# ==============================================================================
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment Variables & Secrets (CRITICAL: Database passwords, JWT keys)
+.env
+*.env
+backend/.env
+.env.local
+.env.*.local
+
+# Python Cache & Bytecode
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor & IDE Directories
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# Operating System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Temporary & Download Artifacts
+analytics.js.download
+261a7231e07c3314ff202e8be036402a.png
+*.download
+*.log
+scratch/
+tmp/

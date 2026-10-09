@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50 antialiased">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexCart – Your Next Shopping Experience</title>
+  <meta name="description" content="Advanced E-Commerce Order Management System built on MySQL 8.0 and FastAPI.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z'/><path d='M3 6h18'/><path d='M16 10a4 4 0 0 1-8 0'/></svg>">
+  
+  <!-- Inter Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS via Official CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+              950: '#172554',
+            }
+          },
+          boxShadow: {
+            'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+            'subtle': '0 2px 10px 0 rgba(0, 0, 0, 0.04)',
+            'elevated': '0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02)',
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="flex flex-col min-h-screen text-slate-800 bg-slate-50 selection:bg-brand-500 selection:text-white">
+
+  <!-- Floating Toast Notification Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm pointer-events-none"></div>
+
+  <!-- Global Navigation Header (Rendered by JS) -->
+  <header id="navbar-container" class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 transition-all shadow-sm"></header>
+
+  <!-- Main View Container for SPA Router -->
+  <main id="app" class="flex-1 flex flex-col w-full min-h-[calc(100vh-140px)]">
+    <!-- Loading placeholder during boot -->
+    <div class="flex-1 flex items-center justify-center py-24">
+      <div class="flex flex-col items-center gap-3">
+        <div class="w-10 h-10 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin"></div>
+        <p class="text-sm font-medium text-slate-500">Connecting to NexCart API...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Global Footer (Rendered by JS) -->
+  <footer id="footer-container" class="bg-slate-900 text-slate-400 border-t border-slate-800"></footer>
+
+  <!-- Application Modules -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
