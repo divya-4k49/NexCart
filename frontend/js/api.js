@@ -3,12 +3,44 @@
  * Centralized HTTP client managing communication with the FastAPI backend.
  */
 
-// Determine Base API URL
+// Production Render Backend API URL (fallback when deployed on cloud static hosts)
+const DEFAULT_PRODUCTION_API_URL = 'https://nexcart-api.onrender.com/api';
+
+/**
+ * Determines Base API URL dynamically:
+ * 1. window.__NEXCART_API_URL__ (runtime injection)
+ * 2. localStorage override ('nexcart_api_override')
+ * 3. Relative '/api' if hosted on same origin as backend (e.g. FastAPI /app mount)
+ * 4. 'http://127.0.0.1:8000/api' if running on local machine (localhost / 127.0.0.1)
+ * 5. Production Render backend URL when hosted in the cloud
+ */
 const getApiBaseUrl = () => {
-  if (window.location.origin.includes('localhost:8000') || window.location.origin.includes('127.0.0.1:8000')) {
+  // 1. Runtime window injection
+  if (window.__NEXCART_API_URL__) {
+    return window.__NEXCART_API_URL__.replace(/\/+$/, '');
+  }
+
+  // 2. LocalStorage override for testing
+  const savedOverride = localStorage.getItem('nexcart_api_override');
+  if (savedOverride) {
+    return savedOverride.replace(/\/+$/, '');
+  }
+
+  const hostname = window.location.hostname;
+  const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0' || hostname === '';
+
+  // 3. Same-origin deployment (e.g. accessed through FastAPI mounted frontend or reverse proxy)
+  if (window.location.origin.includes(':8000') || window.location.pathname.startsWith('/app')) {
     return '/api';
   }
-  return 'http://127.0.0.1:8000/api';
+
+  // 4. Local development servers (e.g. python -m http.server 3000, Live Server, Vite)
+  if (isLocalhost) {
+    return 'http://127.0.0.1:8000/api';
+  }
+
+  // 5. Cloud deployment (Render, Vercel, Netlify)
+  return DEFAULT_PRODUCTION_API_URL;
 };
 
 export const API_BASE = getApiBaseUrl();
@@ -58,7 +90,11 @@ async function request(endpoint, options = {}) {
     if (!error.status) {
       // Network failure or backend server offline
       console.error(`[NexCart API] Network connection failed for ${endpoint}:`, error);
-      const networkError = new Error('Cannot connect to NexCart API. Please ensure the backend server is running on port 8000.');
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const message = isLocal
+        ? 'Cannot connect to NexCart API. Please ensure the local backend server is running on port 8000 (uvicorn app.main:app --reload).'
+        : 'Cannot reach the NexCart API. If newly deployed or waking up on Render (free tier), please wait 30 seconds and refresh.';
+      const networkError = new Error(message);
       networkError.isNetworkError = true;
       throw networkError;
     }

@@ -12,6 +12,7 @@ from app.routes.reviews import router as reviews_router
 from app.routes.admin import router as admin_router
 
 settings = get_settings()
+settings.validate_production_security()
 
 app = FastAPI(
     title=f"{settings.PROJECT_NAME} API",

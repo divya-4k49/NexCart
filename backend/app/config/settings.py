@@ -62,6 +62,27 @@ class Settings(BaseSettings):
         """Parses comma-separated frontend origins for CORS middleware."""
         return [origin.strip() for origin in self.FRONTEND_ORIGINS.split(",") if origin.strip()]
 
+    def validate_production_security(self) -> None:
+        """
+        Enforces security guardrails when running in production mode.
+        Prevents the application from starting in production with placeholder or weak secrets.
+        """
+        if self.ENVIRONMENT.lower() == "production":
+            insecure_placeholders = [
+                "college_ecommerce_super_secret_jwt_key_2026_xyz987654321",
+                "secret",
+                "changeme",
+                "your_secret_key",
+                "supersecret",
+            ]
+            if not self.SECRET_KEY or self.SECRET_KEY in insecure_placeholders or len(self.SECRET_KEY) < 32:
+                raise ValueError(
+                    "[SECURITY ERROR] In production, SECRET_KEY must be a cryptographically strong key "
+                    "with at least 32 characters. Please configure the SECRET_KEY environment variable in your "
+                    "hosting dashboard (e.g. Render). Generate one with: "
+                    "python -c \"import secrets; print(secrets.token_hex(32))\""
+                )
+
 
 @lru_cache()
 def get_settings() -> Settings:
