@@ -30,6 +30,13 @@ class Settings(BaseSettings):
     # CORS
     FRONTEND_ORIGINS: str = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"
 
+    # PhonePe Payment Gateway Readiness
+    PHONEPE_MERCHANT_ID: str = "PGTESTPAYUAT"
+    PHONEPE_SALT_KEY: str = "099eb0cd-02cf-4e2a-8aca-3e6c6aff0399"
+    PHONEPE_SALT_INDEX: int = 1
+    PHONEPE_ENV: str = "UAT"  # "UAT" or "PRODUCTION"
+    PHONEPE_CALLBACK_URL: str = "http://localhost:8000/api/orders/payment/phonepe/callback"
+
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"),
         env_file_encoding="utf-8",

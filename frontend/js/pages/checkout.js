@@ -157,13 +157,30 @@ async function loadCheckoutView() {
               <span>2. Select Payment Method</span>
             </h2>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <label class="p-4 rounded-2xl border ${selectedPaymentMethod === 'PhonePe' ? 'border-purple-500 bg-purple-50/40 ring-2 ring-purple-200' : 'border-slate-200 bg-white hover:border-slate-300'} cursor-pointer flex flex-col justify-between gap-3 transition-all relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center font-extrabold text-[11px]">P</span>
+                    <span class="text-xs font-bold text-slate-900">PhonePe Gateway</span>
+                  </div>
+                  <input type="radio" name="checkout-payment" value="PhonePe" class="text-purple-600 focus:ring-purple-500">
+                </div>
+                <div>
+                  <p class="text-[11px] text-slate-500">Instant UPI, QR code & card settlement.</p>
+                  <span class="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-purple-700 bg-purple-100/70 px-2 py-0.5 rounded-full">
+                    <i data-lucide="zap" class="w-3 h-3"></i>
+                    <span>UAT Sandbox Simulation Ready</span>
+                  </span>
+                </div>
+              </label>
+
               <label class="p-4 rounded-2xl border ${selectedPaymentMethod === 'UPI Demo' ? 'border-brand-500 bg-brand-50/40 ring-2 ring-brand-200' : 'border-slate-200 bg-white hover:border-slate-300'} cursor-pointer flex flex-col justify-between gap-3 transition-all">
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-bold text-slate-900">UPI Demo</span>
                   <input type="radio" name="checkout-payment" value="UPI Demo" checked class="text-brand-600 focus:ring-brand-500">
                 </div>
-                <p class="text-[11px] text-slate-500">Google Pay, PhonePe, Paytm simulation. Instant confirmation.</p>
+                <p class="text-[11px] text-slate-500">Google Pay, BHIM & standard UPI test simulation.</p>
               </label>
 
               <label class="p-4 rounded-2xl border ${selectedPaymentMethod === 'Card Demo' ? 'border-brand-500 bg-brand-50/40 ring-2 ring-brand-200' : 'border-slate-200 bg-white hover:border-slate-300'} cursor-pointer flex flex-col justify-between gap-3 transition-all">
@@ -171,7 +188,7 @@ async function loadCheckoutView() {
                   <span class="text-xs font-bold text-slate-900">Card Demo</span>
                   <input type="radio" name="checkout-payment" value="Card Demo" class="text-brand-600 focus:ring-brand-500">
                 </div>
-                <p class="text-[11px] text-slate-500">Visa, Mastercard mock payment gateway.</p>
+                <p class="text-[11px] text-slate-500">Visa, Mastercard & RuPay test gateway simulation.</p>
               </label>
 
               <label class="p-4 rounded-2xl border ${selectedPaymentMethod === 'Cash on Delivery' ? 'border-brand-500 bg-brand-50/40 ring-2 ring-brand-200' : 'border-slate-200 bg-white hover:border-slate-300'} cursor-pointer flex flex-col justify-between gap-3 transition-all">
@@ -179,7 +196,7 @@ async function loadCheckoutView() {
                   <span class="text-xs font-bold text-slate-900">Cash on Delivery</span>
                   <input type="radio" name="checkout-payment" value="Cash on Delivery" class="text-brand-600 focus:ring-brand-500">
                 </div>
-                <p class="text-[11px] text-slate-500">Pay cash upon package arrival at your doorstep.</p>
+                <p class="text-[11px] text-slate-500">Pay cash upon delivery at your doorstep.</p>
               </label>
             </div>
           </div>
@@ -218,13 +235,13 @@ async function loadCheckoutView() {
             </div>
           </div>
 
-          <div class="p-3 rounded-xl bg-brand-50/50 border border-brand-100 text-[11px] text-brand-900 space-y-1">
-            <p class="font-bold flex items-center gap-1">
-              <i data-lucide="lock" class="w-3 h-3 text-brand-600"></i>
-              <span>ACID Transaction Execution</span>
+          <div class="p-3.5 rounded-xl bg-brand-50/60 border border-brand-100 text-[11px] text-brand-900 space-y-1">
+            <p class="font-bold flex items-center gap-1.5 text-brand-700">
+              <i data-lucide="shield-check" class="w-3.5 h-3.5 text-brand-600"></i>
+              <span>100% Safe & Secure Checkout</span>
             </p>
             <p class="text-slate-600 leading-relaxed">
-              When clicked, MySQL executes row-level locking on inventory, generates an invoice in <code class="font-mono">orders</code>, snapshots <code class="font-mono">unit_price</code> in <code class="font-mono">order_details</code>, and clears your cart.
+              Your order is protected with end-to-end encryption, guaranteed stock reservation, and instant courier shipment tracking.
             </p>
           </div>
 
@@ -255,6 +272,16 @@ async function loadCheckoutView() {
     container.querySelectorAll('input[name="checkout-payment"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
         selectedPaymentMethod = e.target.value;
+        container.querySelectorAll('input[name="checkout-payment"]').forEach(r => {
+          const card = r.closest('label');
+          if (!card) return;
+          if (r.checked) {
+            const isPhonePe = r.value === 'PhonePe';
+            card.className = `p-4 rounded-2xl border ${isPhonePe ? 'border-purple-500 bg-purple-50/40 ring-2 ring-purple-200' : 'border-brand-500 bg-brand-50/40 ring-2 ring-brand-200'} cursor-pointer flex flex-col justify-between gap-3 transition-all relative overflow-hidden group`;
+          } else {
+            card.className = 'p-4 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 cursor-pointer flex flex-col justify-between gap-3 transition-all relative overflow-hidden group';
+          }
+        });
       });
     });
 

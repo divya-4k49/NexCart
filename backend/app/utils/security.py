@@ -55,3 +55,26 @@ def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
         return payload
     except JWTError:
         return None
+
+
+def create_password_reset_token(email: str, expires_minutes: int = 15) -> str:
+    """
+    Generates a cryptographically signed token specifically for password reset.
+    Expires in 15 minutes by default.
+    """
+    data = {"sub": email.lower().strip(), "purpose": "password_reset"}
+    return create_access_token(data, expires_delta=timedelta(minutes=expires_minutes))
+
+
+def verify_password_reset_token(token: str, email: str) -> bool:
+    """
+    Validates a password reset token against the specified email and purpose.
+    """
+    payload = decode_access_token(token)
+    if not payload:
+        return False
+    if payload.get("purpose") != "password_reset":
+        return False
+    if payload.get("sub") != email.lower().strip():
+        return False
+    return True

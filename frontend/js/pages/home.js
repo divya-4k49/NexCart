@@ -20,9 +20,9 @@ export async function renderHomePage() {
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
             <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-50 border border-brand-200/80 text-brand-700 text-xs font-semibold">
+              <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-50 border border-brand-200/80 text-brand-700 text-xs font-semibold">
                 <span class="w-2 h-2 rounded-full bg-brand-600 animate-pulse"></span>
-                <span>Production Relational DBMS Demo &bull; 12 Entities</span>
+                <span>Premium Tech Store &bull; Fast Delivery Across India</span>
               </div>
               
               <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
@@ -30,7 +30,7 @@ export async function renderHomePage() {
               </h1>
               
               <p class="text-lg text-slate-600 max-w-2xl mx-auto lg:mx-0 font-normal leading-relaxed">
-                Discover flagship smartphones, M3 workstations, noise-canceling audio, and mechanical peripherals. Backed by strict ACID transactional inventory management.
+                Discover flagship smartphones, high-performance workstations, noise-canceling audio, and accessories. Backed by guaranteed stock reservations and express dispatch.
               </p>
 
               <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
@@ -47,12 +47,12 @@ export async function renderHomePage() {
               <!-- Trust Stats -->
               <div class="pt-8 border-t border-slate-200/70 grid grid-cols-3 gap-6 max-w-lg mx-auto lg:mx-0 text-left">
                 <div>
-                  <p class="text-2xl font-bold text-slate-900">14</p>
-                  <p class="text-xs text-slate-500 font-medium">Curated Tech Products</p>
+                  <p class="text-2xl font-bold text-slate-900">100%</p>
+                  <p class="text-xs text-slate-500 font-medium">Genuine Products</p>
                 </div>
                 <div>
-                  <p class="text-2xl font-bold text-slate-900">100%</p>
-                  <p class="text-xs text-slate-500 font-medium">ACID Atomic Checkout</p>
+                  <p class="text-2xl font-bold text-slate-900">Secure</p>
+                  <p class="text-xs text-slate-500 font-medium">Encrypted Checkout</p>
                 </div>
                 <div>
                   <p class="text-2xl font-bold text-slate-900">&#8377;999</p>
@@ -126,8 +126,8 @@ export async function renderHomePage() {
               <i data-lucide="shield-check" class="w-6 h-6"></i>
             </div>
             <div>
-              <h4 class="font-bold text-slate-900 text-sm">ACID Stock Safety</h4>
-              <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">Pessimistic row locking ensures zero out-of-stock overselling.</p>
+              <h4 class="font-bold text-slate-900 text-sm">Guaranteed Stock</h4>
+              <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">Real-time stock reservation ensures zero out-of-stock cancellations.</p>
             </div>
           </div>
 
@@ -136,8 +136,8 @@ export async function renderHomePage() {
               <i data-lucide="award" class="w-6 h-6"></i>
             </div>
             <div>
-              <h4 class="font-bold text-slate-900 text-sm">Verified Reviews</h4>
-              <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">Reviews verified against customer order histories in MySQL.</p>
+              <h4 class="font-bold text-slate-900 text-sm">Verified Purchases</h4>
+              <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">Transparent customer ratings and reviews from verified buyers.</p>
             </div>
           </div>
 
@@ -146,8 +146,8 @@ export async function renderHomePage() {
               <i data-lucide="credit-card" class="w-6 h-6"></i>
             </div>
             <div>
-              <h4 class="font-bold text-slate-900 text-sm">Instant Demo Payments</h4>
-              <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">Interactive mock simulations for UPI, Cards, and Cash on Delivery.</p>
+              <h4 class="font-bold text-slate-900 text-sm">Flexible Payments</h4>
+              <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">Pay with UPI (PhonePe/GPay), Cards, or Cash on Delivery.</p>
             </div>
           </div>
 
@@ -192,27 +192,27 @@ export async function renderHomePage() {
         </div>
       </section>
 
-      <!-- 5. DBMS Academic Showcase Banner -->
+      <!-- 5. Professional Customer Assurance Banner -->
       <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-8 sm:p-12 text-white shadow-xl relative overflow-hidden">
+        <div class="rounded-3xl bg-gradient-to-r from-slate-900 via-brand-950 to-indigo-950 p-8 sm:p-12 text-white shadow-xl relative overflow-hidden">
           <div class="absolute right-0 top-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
           
           <div class="max-w-2xl space-y-4">
-            <span class="px-3 py-1 rounded-full bg-brand-500/20 text-brand-300 text-xs font-semibold border border-brand-500/30">
-              DBMS Cornerstone Evaluation Ready
+            <span class="px-3.5 py-1 rounded-full bg-brand-500/20 text-brand-300 text-xs font-semibold border border-brand-500/30">
+              NexCart Express Delivery
             </span>
-            <h3 class="text-2xl sm:text-3xl font-bold tracking-tight">Need to test MySQL queries or check table schemas?</h3>
+            <h3 class="text-2xl sm:text-3xl font-bold tracking-tight">Looking for flagship tech with express shipping?</h3>
             <p class="text-slate-300 text-sm leading-relaxed">
-              NexCart includes automated verification endpoints, interactive Swagger UI documentation, and direct MySQL 8.0 schema verification.
+              Every order includes free express delivery on purchases above &#8377;999, live consignment tracking with major couriers, and guaranteed genuine brand warranty.
             </p>
             <div class="flex flex-wrap items-center gap-4 pt-2">
-              <a href="/docs" target="_blank" class="px-5 py-2.5 rounded-full bg-white text-slate-900 text-xs font-bold hover:bg-slate-100 transition-colors flex items-center gap-2">
-                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                <span>Open FastAPI Swagger Docs</span>
+              <a href="#/shop" class="px-5 py-2.5 rounded-full bg-white text-slate-900 text-xs font-bold hover:bg-slate-100 transition-colors flex items-center gap-2">
+                <i data-lucide="shopping-bag" class="w-3.5 h-3.5 text-brand-600"></i>
+                <span>Shop All Categories</span>
               </a>
-              <a href="/api/health/db-tables" target="_blank" class="px-5 py-2.5 rounded-full bg-slate-800/80 text-white text-xs font-bold border border-slate-700 hover:bg-slate-800 transition-colors flex items-center gap-2">
-                <i data-lucide="database" class="w-3.5 h-3.5"></i>
-                <span>Inspect All 12 Tables (Live JSON)</span>
+              <a href="#/track" class="px-5 py-2.5 rounded-full bg-slate-800/80 text-white text-xs font-bold border border-slate-700 hover:bg-slate-800 transition-colors flex items-center gap-2">
+                <i data-lucide="truck" class="w-3.5 h-3.5 text-brand-400"></i>
+                <span>Track Your Shipment</span>
               </a>
             </div>
           </div>

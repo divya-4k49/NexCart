@@ -12,12 +12,18 @@ from app.schemas.auth import (
     CustomerResponse,
     AdminResponse,
     TokenResponse,
-    MessageResponse
+    MessageResponse,
+    ChangePasswordRequest,
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
+    ResetPasswordRequest
 )
 from app.utils.security import (
     hash_password,
     verify_password,
-    create_access_token
+    create_access_token,
+    create_password_reset_token,
+    verify_password_reset_token
 )
 from app.utils.dependencies import get_current_customer, get_current_admin
 
@@ -203,3 +209,162 @@ def get_admin_profile(current_admin: Admin = Depends(get_current_admin)):
     Protected endpoint: Returns the profile of the authenticated admin.
     """
     return current_admin
+
+
+# ==============================================================================
+# PASSWORD MANAGEMENT & RECOVERY
+# ==============================================================================
+@router.post(
+    "/customer/change-password",
+    response_model=MessageResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Change password for authenticated customer"
+)
+def change_customer_password(
+    payload: ChangePasswordRequest,
+    current_customer: Customer = Depends(get_current_customer),
+    db: Session = Depends(get_db)
+):
+    """
+    Secure password update for authenticated customers:
+    1. Verifies the current password against stored BCrypt hash.
+    2. Validates new password length and constraints.
+    3. Hashes and persists the new password.
+    """
+    if not verify_password(payload.current_password, current_customer.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect."
+        )
+
+    if payload.current_password == payload.new_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password cannot be identical to current password."
+        )
+
+    current_customer.password_hash = hash_password(payload.new_password)
+    db.commit()
+
+    return MessageResponse(
+        message="Your password has been changed successfully.",
+        status="success"
+    )
+
+
+@router.post(
+    "/admin/change-password",
+    response_model=MessageResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Change password for authenticated administrator"
+)
+def change_admin_password(
+    payload: ChangePasswordRequest,
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Secure password update for authenticated administrators:
+    1. Verifies the current admin password against stored BCrypt hash.
+    2. Hashes and updates the admin password.
+    """
+    if not verify_password(payload.current_password, current_admin.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current administrator password is incorrect."
+        )
+
+    if payload.current_password == payload.new_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password cannot be identical to current password."
+        )
+
+    current_admin.password_hash = hash_password(payload.new_password)
+    db.commit()
+
+    return MessageResponse(
+        message="Administrator password updated successfully.",
+        status="success"
+    )
+
+
+@router.post(
+    "/forgot-password/request",
+    response_model=ForgotPasswordResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Request a secure password reset token"
+)
+def request_password_reset(
+    payload: ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Initiates secure password reset flow:
+    1. Checks if customer or admin account exists for the email.
+    2. Generates a signed, time-limited verification token (15 mins).
+    3. Returns token for verification.
+    """
+    email_clean = payload.email.lower().strip()
+    cust = db.query(Customer).filter(Customer.email == email_clean).first()
+    adm = db.query(Admin).filter(Admin.email == email_clean).first()
+
+    if not cust and not adm:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No customer or administrator account registered with this email address."
+        )
+
+    reset_token = create_password_reset_token(email_clean, expires_minutes=15)
+
+    return ForgotPasswordResponse(
+        message="Password reset verification token generated successfully. Valid for 15 minutes.",
+        reset_token=reset_token,
+        expires_in_minutes=15
+    )
+
+
+@router.post(
+    "/forgot-password/reset",
+    response_model=MessageResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Reset password with verification token"
+)
+def reset_password_with_token(
+    payload: ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Completes password reset:
+    1. Validates the signature, expiration, and email match of the reset token.
+    2. Updates the account's password using salted BCrypt hashing.
+    """
+    email_clean = payload.email.lower().strip()
+    if not verify_password_reset_token(payload.reset_token, email_clean):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid, expired, or mismatched password reset token. Please request a new token."
+        )
+
+    cust = db.query(Customer).filter(Customer.email == email_clean).first()
+    if cust:
+        cust.password_hash = hash_password(payload.new_password)
+        db.commit()
+        return MessageResponse(
+            message="Your customer account password has been reset successfully. Please sign in.",
+            status="success"
+        )
+
+    adm = db.query(Admin).filter(Admin.email == email_clean).first()
+    if adm:
+        adm.password_hash = hash_password(payload.new_password)
+        db.commit()
+        return MessageResponse(
+            message="Your administrator password has been reset successfully. Please sign in.",
+            status="success"
+        )
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Account could not be located."
+    )

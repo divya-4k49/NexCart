@@ -16,8 +16,10 @@ from app.models.order import Order
 from app.models.order_detail import OrderDetail
 from app.models.payment import Payment
 from app.models.shipping import Shipping
+from app.config.settings import get_settings
 from app.schemas.order import (
     OrderCreateRequest,
+    PhonePeConfigResponse,
     OrderDetailResponse,
     PaymentSummaryResponse,
     ShippingSummaryResponse,
@@ -125,7 +127,7 @@ def place_order_from_cart(
         total_amount = (subtotal + shipping_fee).quantize(Decimal("0.01"))
 
         # Order status determined by payment method
-        is_instant_paid = payload.payment_method in ["Card Demo", "UPI Demo"]
+        is_instant_paid = payload.payment_method in ["Card Demo", "UPI Demo", "PhonePe"]
         initial_order_status = "Confirmed" if is_instant_paid else "Pending"
 
         # 6. Create Order header
@@ -165,7 +167,11 @@ def place_order_from_cart(
             ))
 
         # 9. Create 1:1 Payment Record
-        tx_reference = f"TXN-{uuid.uuid4().hex[:10].upper()}"
+        if payload.payment_method == "PhonePe":
+            tx_reference = f"PHONEPE-{uuid.uuid4().hex[:10].upper()}"
+        else:
+            tx_reference = f"TXN-{uuid.uuid4().hex[:10].upper()}"
+
         payment = Payment(
             order_id=new_order.order_id,
             payment_method=payload.payment_method,
@@ -624,4 +630,34 @@ def get_order_tracking(
         )
 
     return build_tracking_response(order)
+
+
+@router.get(
+    "/payment/phonepe/status",
+    response_model=PhonePeConfigResponse,
+    summary="PhonePe Payment Gateway Readiness & Configuration Status"
+)
+def get_phonepe_gateway_status():
+    """
+    Returns the real-time configuration status of the PhonePe Payment Gateway:
+    - Reports whether running in Sandbox (UAT) or Live Production mode.
+    - Explicitly details any missing production credentials (MID, Salt Key, Index).
+    """
+    cfg = get_settings()
+    is_live = (cfg.PHONEPE_ENV.upper() == "PRODUCTION") and (cfg.PHONEPE_MERCHANT_ID != "PGTESTPAYUAT")
+
+    missing = []
+    if cfg.PHONEPE_MERCHANT_ID == "PGTESTPAYUAT":
+        missing.append("Live Production Merchant ID (MID) - currently using default test sandbox: PGTESTPAYUAT")
+    if "099eb0cd" in cfg.PHONEPE_SALT_KEY:
+        missing.append("Live Production Salt Key & Salt Index - currently using default UAT test key")
+
+    return PhonePeConfigResponse(
+        gateway_status="UAT Sandbox Ready (Test Simulation Mode)" if not is_live else "Live Production Gateway Active",
+        merchant_id=cfg.PHONEPE_MERCHANT_ID,
+        environment=cfg.PHONEPE_ENV,
+        is_live_configured=is_live,
+        missing_configurations=missing,
+        callback_url=cfg.PHONEPE_CALLBACK_URL
+    )
 

@@ -109,6 +109,50 @@ class CategorySalesMetric(BaseModel):
     total_revenue: Decimal
 
 
+class MonthlyRevenueMetric(BaseModel):
+    month: str
+    revenue: Decimal
+    order_count: int
+
+
+class OrderStatusMetric(BaseModel):
+    status: str
+    count: int
+    percentage: float
+
+
+class TopSellingProductMetric(BaseModel):
+    product_id: int
+    product_name: str
+    category_name: str
+    units_sold: int
+    revenue: Decimal
+
+
+class InventoryDistributionMetric(BaseModel):
+    in_stock: int
+    low_stock: int
+    out_of_stock: int
+    total_units: int
+
+
+class AdminProductListItemResponse(BaseModel):
+    product_id: int
+    product_name: str
+    slug: str
+    category_id: int
+    category_name: str
+    price: Decimal
+    stock_quantity: int
+    low_stock_threshold: int
+    image_url: Optional[str] = None
+    is_active: bool
+    created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
 class AdminDashboardAnalyticsResponse(BaseModel):
     total_revenue: Decimal
     total_orders: int
@@ -119,6 +163,10 @@ class AdminDashboardAnalyticsResponse(BaseModel):
     total_products: int
     low_stock_products_count: int
     category_sales: List[CategorySalesMetric]
+    monthly_revenue: List[MonthlyRevenueMetric] = []
+    order_status_distribution: List[OrderStatusMetric] = []
+    top_selling_products: List[TopSellingProductMetric] = []
+    inventory_distribution: Optional[InventoryDistributionMetric] = None
     recent_orders: List[AdminOrderListItemResponse]
 
     class Config:

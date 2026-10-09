@@ -19,15 +19,15 @@ export function renderFooter() {
             <span class="text-xl font-bold text-white tracking-tight">NexCart</span>
           </div>
           <p class="text-sm text-slate-400 leading-relaxed">
-            Your Next Shopping Experience. An enterprise-grade, 3-tier e-commerce order management system powered by MySQL 8.0 and FastAPI.
+            Your Next Shopping Experience. Curated premium tech, flagship devices, and accessories delivered with express dispatch and guaranteed fulfillment.
           </p>
           <div class="flex items-center gap-2 text-xs text-slate-400 pt-2">
-            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-800 text-emerald-400 border border-slate-700">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800 text-emerald-400 border border-slate-700">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              MySQL 8.0 Live
+              100% Authentic Products
             </span>
-            <span class="px-2 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700">
-              12 Relational Entities
+            <span class="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700">
+              Express Dispatch
             </span>
           </div>
         </div>
@@ -58,29 +58,29 @@ export function renderFooter() {
           </ul>
         </div>
 
-        <!-- Col 4: Faculty & Technical Evaluation -->
+        <!-- Col 4: Help & Policies -->
         <div>
-          <h3 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">DBMS Cornerstone</h3>
+          <h3 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">Customer Care & Portal</h3>
           <p class="text-xs text-slate-400 mb-3">
-            Built for college evaluation with strict 3NF database normalization, ACID transactions, and zero entity shortcuts.
+            Dedicated customer assistance and secure order management.
           </p>
           <ul class="space-y-2.5 text-sm">
             <li>
-              <a href="/docs" target="_blank" class="flex items-center gap-1.5 text-brand-400 hover:text-brand-300 transition-colors">
-                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                <span>FastAPI Swagger UI (/docs)</span>
+              <a href="#/track" class="flex items-center gap-1.5 text-brand-400 hover:text-brand-300 transition-colors">
+                <i data-lucide="truck" class="w-3.5 h-3.5"></i>
+                <span>Track Your Consignment</span>
               </a>
             </li>
             <li>
-              <a href="/api/health/db-tables" target="_blank" class="flex items-center gap-1.5 text-brand-400 hover:text-brand-300 transition-colors">
-                <i data-lucide="database" class="w-3.5 h-3.5"></i>
-                <span>Live Table Row Counts</span>
+              <a href="#/orders" class="flex items-center gap-1.5 text-brand-400 hover:text-brand-300 transition-colors">
+                <i data-lucide="package" class="w-3.5 h-3.5"></i>
+                <span>Invoices & Order Status</span>
               </a>
             </li>
             <li>
               <a href="#/admin" class="flex items-center gap-1.5 text-amber-400 hover:text-amber-300 transition-colors">
                 <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
-                <span>Admin Executive Portal</span>
+                <span>Admin Management Portal</span>
               </a>
             </li>
           </ul>
@@ -89,11 +89,9 @@ export function renderFooter() {
       </div>
 
       <div class="border-t border-slate-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-        <p>&copy; 2026 NexCart Systems. Built with Python FastAPI, SQLAlchemy 2.0, and MySQL 8.0.</p>
+        <p>&copy; 2026 NexCart Technologies Pvt. Ltd. All rights reserved.</p>
         <p class="flex items-center gap-1">
-          <span>Engineered with</span>
-          <span class="text-rose-500">&hearts;</span>
-          <span>for Academic & Real-World Excellence</span>
+          <span>Engineered for seamless digital commerce</span>
         </p>
       </div>
     </div>

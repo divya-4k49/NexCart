@@ -80,6 +80,10 @@ export const api = {
     customerMe: () => request('/auth/customer/me'),
     adminLogin: (payload) => request('/auth/admin/login', { method: 'POST', body: JSON.stringify(payload) }),
     adminMe: () => request('/auth/admin/me'),
+    changeCustomerPassword: (payload) => request('/auth/customer/change-password', { method: 'POST', body: JSON.stringify(payload) }),
+    changeAdminPassword: (payload) => request('/auth/admin/change-password', { method: 'POST', body: JSON.stringify(payload) }),
+    forgotPasswordRequest: (payload) => request('/auth/forgot-password/request', { method: 'POST', body: JSON.stringify(payload) }),
+    resetPassword: (payload) => request('/auth/forgot-password/reset', { method: 'POST', body: JSON.stringify(payload) }),
   },
 
   // 3. Categories
@@ -132,6 +136,7 @@ export const api = {
     cancel: (orderId) => request(`/orders/${orderId}/cancel`, { method: 'PUT' }),
     trackingStepper: (orderId) => request(`/orders/${orderId}/tracking`),
     trackPublic: (trackingNumber) => request(`/orders/track/${encodeURIComponent(trackingNumber)}`),
+    phonepeStatus: () => request('/orders/payment/phonepe/status'),
   },
 
   // 8. Reviews
@@ -147,10 +152,22 @@ export const api = {
     analytics: () => request('/admin/analytics'),
     inventory: (lowStockOnly = false) => request(`/admin/inventory?low_stock_only=${lowStockOnly}`),
     updateInventory: (productId, payload) => request(`/admin/inventory/${productId}`, { method: 'PUT', body: JSON.stringify(payload) }),
+    products: (params = {}) => {
+      const q = new URLSearchParams();
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') q.append(k, v);
+      });
+      const qs = q.toString() ? `?${q.toString()}` : '';
+      return request(`/admin/products${qs}`);
+    },
     createProduct: (payload) => request('/admin/products', { method: 'POST', body: JSON.stringify(payload) }),
     updateProduct: (productId, payload) => request(`/admin/products/${productId}`, { method: 'PUT', body: JSON.stringify(payload) }),
-    deactivateProduct: (productId) => request(`/admin/products/${productId}`, { method: 'DELETE' }),
+    toggleProductStatus: (productId) => request(`/admin/products/${productId}/toggle-status`, { method: 'PUT' }),
+    deleteProduct: (productId) => request(`/admin/products/${productId}`, { method: 'DELETE' }),
+    categories: () => request('/admin/categories'),
     createCategory: (payload) => request('/admin/categories', { method: 'POST', body: JSON.stringify(payload) }),
+    updateCategory: (categoryId, payload) => request(`/admin/categories/${categoryId}`, { method: 'PUT', body: JSON.stringify(payload) }),
+    deleteCategory: (categoryId) => request(`/admin/categories/${categoryId}`, { method: 'DELETE' }),
     orders: (statusFilter = null) => {
       const q = statusFilter ? `?status_filter=${encodeURIComponent(statusFilter)}` : '';
       return request(`/admin/orders${q}`);

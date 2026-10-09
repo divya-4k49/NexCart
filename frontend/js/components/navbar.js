@@ -27,7 +27,7 @@ export function renderNavbar() {
             </div>
             <div>
               <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">NexCart</span>
-              <span class="hidden sm:inline-block text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 ml-1.5 bg-brand-50 text-brand-700 rounded-md border border-brand-200">DBMS Pro</span>
+              <span class="hidden sm:inline-block text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 ml-1.5 bg-brand-50 text-brand-700 rounded-full border border-brand-200">Store</span>
             </div>
           </a>
 
@@ -140,6 +140,11 @@ export function renderNavbar() {
                         <span>Manage Inventory</span>
                       </a>
                     ` : ''}
+
+                    <button id="btn-change-password" class="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-brand-600 transition-colors">
+                      <i data-lucide="key-round" class="w-4 h-4 text-slate-400"></i>
+                      <span>Change Password</span>
+                    </button>
                   </div>
 
                   <div class="border-t border-slate-100 pt-1">
@@ -195,4 +200,156 @@ export function renderNavbar() {
       window.location.hash = '#/';
     });
   }
+
+  // Handle Change Password Button
+  const changePwdBtn = document.getElementById('btn-change-password');
+  if (changePwdBtn) {
+    changePwdBtn.addEventListener('click', () => {
+      openChangePasswordModal();
+    });
+  }
+}
+
+/**
+ * Interactive Change Password Modal
+ */
+export function openChangePasswordModal() {
+  const existingModal = document.getElementById('change-password-modal');
+  if (existingModal) existingModal.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'change-password-modal';
+  modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in';
+  modal.innerHTML = `
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-2xl p-6 sm:p-8 max-w-md w-full space-y-6 text-left relative">
+      <button id="close-change-pwd" class="absolute top-5 right-5 p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="space-y-1">
+        <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center mb-2">
+          <i data-lucide="key-round" class="w-5 h-5"></i>
+        </div>
+        <h3 class="text-xl font-bold text-slate-900">Change Password</h3>
+        <p class="text-xs text-slate-500">Update your security credentials. Your new password must be at least 6 characters.</p>
+      </div>
+
+      <form id="form-change-password" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Current Password</label>
+          <div class="relative">
+            <input 
+              type="password" 
+              id="pwd-current" 
+              required 
+              placeholder="••••••••••••"
+              class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 pr-10 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+            >
+            <button type="button" data-toggle-eye="pwd-current" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">New Password</label>
+          <div class="relative">
+            <input 
+              type="password" 
+              id="pwd-new" 
+              required 
+              minlength="6"
+              placeholder="At least 6 characters"
+              class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 pr-10 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+            >
+            <button type="button" data-toggle-eye="pwd-new" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Confirm New Password</label>
+          <div class="relative">
+            <input 
+              type="password" 
+              id="pwd-confirm" 
+              required 
+              minlength="6"
+              placeholder="Re-enter new password"
+              class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 pr-10 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+            >
+            <button type="button" data-toggle-eye="pwd-confirm" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-2 flex items-center justify-end gap-3">
+          <button type="button" id="btn-cancel-change-pwd" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+            Cancel
+          </button>
+          <button type="submit" id="btn-submit-change-pwd" class="px-5 py-2.5 rounded-xl bg-brand-600 text-white text-xs font-bold shadow-md hover:bg-brand-700">
+            Update Password
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  if (window.lucide) window.lucide.createIcons({ root: modal });
+
+  // Toggle eye icons
+  modal.querySelectorAll('[data-toggle-eye]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-toggle-eye');
+      const input = document.getElementById(targetId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = '<i data-lucide="eye-off" class="w-4 h-4"></i>';
+      } else {
+        input.type = 'password';
+        btn.innerHTML = '<i data-lucide="eye" class="w-4 h-4"></i>';
+      }
+      if (window.lucide) window.lucide.createIcons({ root: btn });
+    });
+  });
+
+  const closeModal = () => modal.remove();
+  document.getElementById('close-change-pwd')?.addEventListener('click', closeModal);
+  document.getElementById('btn-cancel-change-pwd')?.addEventListener('click', closeModal);
+
+  // Form submission
+  const form = document.getElementById('form-change-password');
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const currentPassword = document.getElementById('pwd-current')?.value;
+    const newPassword = document.getElementById('pwd-new')?.value;
+    const confirmPassword = document.getElementById('pwd-confirm')?.value;
+
+    if (newPassword !== confirmPassword) {
+      toast.error('New password and confirmation do not match.');
+      return;
+    }
+
+    const submitBtn = document.getElementById('btn-submit-change-pwd');
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+      const payload = { current_password: currentPassword, new_password: newPassword };
+      if (state.isAdmin()) {
+        await api.auth.changeAdminPassword(payload);
+      } else {
+        await api.auth.changeCustomerPassword(payload);
+      }
+      toast.success('Your password has been changed successfully!');
+      closeModal();
+    } catch (err) {
+      toast.error(err.message || 'Failed to change password.');
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  });
 }

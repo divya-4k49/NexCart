@@ -6,11 +6,20 @@ from pydantic import BaseModel, Field
 
 class OrderCreateRequest(BaseModel):
     address_id: int = Field(..., example=1, description="ID of the saved delivery address")
-    payment_method: Literal["Cash on Delivery", "Card Demo", "UPI Demo"] = Field(
+    payment_method: Literal["Cash on Delivery", "Card Demo", "UPI Demo", "PhonePe"] = Field(
         ...,
-        example="UPI Demo",
+        example="PhonePe",
         description="Payment method chosen for this order"
     )
+
+
+class PhonePeConfigResponse(BaseModel):
+    gateway_status: str
+    merchant_id: str
+    environment: str
+    is_live_configured: bool
+    missing_configurations: List[str]
+    callback_url: str
 
 
 class OrderDetailResponse(BaseModel):

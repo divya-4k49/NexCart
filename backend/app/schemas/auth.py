@@ -64,3 +64,27 @@ class TokenResponse(BaseModel):
 class MessageResponse(BaseModel):
     message: str
     status: str = "success"
+
+
+# ------------------------------------------------------------------------------
+# Password Management Schemas
+# ------------------------------------------------------------------------------
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(..., min_length=1, description="Current account password")
+    new_password: str = Field(..., min_length=6, max_length=72, description="New secure password (min 6 chars)")
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr = Field(..., description="Registered customer or admin email address")
+
+
+class ForgotPasswordResponse(BaseModel):
+    message: str
+    reset_token: Optional[str] = None
+    expires_in_minutes: int = 15
+
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr = Field(..., description="Registered email address")
+    reset_token: str = Field(..., min_length=10, description="15-minute verification token")
+    new_password: str = Field(..., min_length=6, max_length=72, description="New password (min 6 chars)")

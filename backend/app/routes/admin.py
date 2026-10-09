@@ -17,6 +17,8 @@ from app.models.order import Order
 from app.models.order_detail import OrderDetail
 from app.models.payment import Payment
 from app.models.shipping import Shipping
+from app.models.cart import Cart
+from app.models.review import Review
 from app.schemas.auth import MessageResponse
 from app.schemas.category import CategoryResponse
 from app.schemas.product import ProductDetailResponse, ProductListItemResponse
@@ -30,6 +32,11 @@ from app.schemas.admin import (
     AdminOrderStatusUpdateRequest,
     AdminOrderListItemResponse,
     CategorySalesMetric,
+    MonthlyRevenueMetric,
+    OrderStatusMetric,
+    TopSellingProductMetric,
+    InventoryDistributionMetric,
+    AdminProductListItemResponse,
     AdminDashboardAnalyticsResponse,
 )
 from app.utils.dependencies import get_current_admin
@@ -101,6 +108,87 @@ def get_dashboard_analytics(
             total_revenue=Decimal(str(sales_data.revenue))
         ))
 
+    # Monthly Revenue Breakdown (Orders grouped by Year-Month)
+    monthly_data = (
+        db.query(
+            func.date_format(Order.order_date, "%Y-%m").label("month_key"),
+            func.coalesce(func.sum(Order.total_amount), 0).label("revenue"),
+            func.count(Order.order_id).label("order_count")
+        )
+        .filter(Order.order_status != "Cancelled")
+        .group_by(func.date_format(Order.order_date, "%Y-%m"))
+        .order_by(func.date_format(Order.order_date, "%Y-%m").asc())
+        .all()
+    )
+    monthly_revenue_list = [
+        MonthlyRevenueMetric(
+            month=str(m[0]),
+            revenue=Decimal(str(m[1])),
+            order_count=int(m[2])
+        )
+        for m in monthly_data
+    ]
+
+    # Order Status Distribution
+    status_counts = (
+        db.query(
+            Order.order_status,
+            func.count(Order.order_id).label("status_count")
+        )
+        .group_by(Order.order_status)
+        .all()
+    )
+    status_dist = []
+    for st_name, st_cnt in status_counts:
+        pct = round((st_cnt / total_orders * 100), 1) if total_orders > 0 else 0.0
+        status_dist.append(OrderStatusMetric(
+            status=st_name,
+            count=st_cnt,
+            percentage=pct
+        ))
+
+    # Top 5 Best-Selling Products by units sold
+    top_selling_data = (
+        db.query(
+            Product.product_id,
+            Product.product_name,
+            Category.category_name,
+            func.coalesce(func.sum(OrderDetail.quantity), 0).label("units_sold"),
+            func.coalesce(func.sum(OrderDetail.subtotal), 0).label("revenue")
+        )
+        .join(Category, Category.category_id == Product.category_id)
+        .join(OrderDetail, OrderDetail.product_id == Product.product_id)
+        .join(Order, Order.order_id == OrderDetail.order_id)
+        .filter(Order.order_status != "Cancelled")
+        .group_by(Product.product_id, Product.product_name, Category.category_name)
+        .order_by(func.sum(OrderDetail.quantity).desc())
+        .limit(5)
+        .all()
+    )
+    top_selling_list = [
+        TopSellingProductMetric(
+            product_id=p[0],
+            product_name=p[1],
+            category_name=p[2],
+            units_sold=int(p[3]),
+            revenue=Decimal(str(p[4]))
+        )
+        for p in top_selling_data
+    ]
+
+    # Inventory Stock Level Distribution
+    in_stock_cnt = db.query(Inventory).filter(Inventory.quantity > Inventory.low_stock_threshold).count()
+    low_stock_cnt = db.query(Inventory).filter((Inventory.quantity > 0) & (Inventory.quantity <= Inventory.low_stock_threshold)).count()
+    out_of_stock_cnt = db.query(Inventory).filter(Inventory.quantity == 0).count()
+    total_units_val = db.query(func.coalesce(func.sum(Inventory.quantity), 0)).scalar()
+
+    inventory_dist = InventoryDistributionMetric(
+        in_stock=in_stock_cnt,
+        low_stock=low_stock_cnt,
+        out_of_stock=out_of_stock_cnt,
+        total_units=int(total_units_val or 0)
+    )
+
     # Recent Orders Stream (latest 10)
     recent_orders_query = (
         db.query(Order)
@@ -143,6 +231,10 @@ def get_dashboard_analytics(
         total_products=total_products,
         low_stock_products_count=low_stock_count,
         category_sales=category_metrics,
+        monthly_revenue=monthly_revenue_list,
+        order_status_distribution=status_dist,
+        top_selling_products=top_selling_list,
+        inventory_distribution=inventory_dist,
         recent_orders=recent_orders_list
     )
 
@@ -240,6 +332,49 @@ def update_inventory(
 # ============================================================================
 # 3. Product Catalog Management (Admin CRUD)
 # ============================================================================
+@router.get("/products", response_model=List[AdminProductListItemResponse], summary="List all products for admin management")
+def list_admin_products(
+    category_id: Optional[int] = Query(None, description="Filter by category"),
+    search: Optional[str] = Query(None, description="Search product name or slug"),
+    is_active: Optional[bool] = Query(None, description="Filter by active status"),
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns full product catalog with inventory and status for management.
+    """
+    query = (
+        db.query(Product, Category, Inventory)
+        .join(Category, Category.category_id == Product.category_id)
+        .join(Inventory, Inventory.product_id == Product.product_id)
+    )
+    if category_id:
+        query = query.filter(Product.category_id == category_id)
+    if search and search.strip():
+        term = f"%{search.strip()}%"
+        query = query.filter(Product.product_name.ilike(term))
+    if is_active is not None:
+        query = query.filter(Product.is_active == is_active)
+
+    results = query.order_by(Product.product_id.asc()).all()
+    return [
+        AdminProductListItemResponse(
+            product_id=p.product_id,
+            product_name=p.product_name,
+            slug=p.slug,
+            category_id=c.category_id,
+            category_name=c.category_name,
+            price=p.price,
+            stock_quantity=i.quantity if i else 0,
+            low_stock_threshold=i.low_stock_threshold if i else 5,
+            image_url=p.image_url,
+            is_active=p.is_active,
+            created_at=p.created_at
+        )
+        for p, c, i in results
+    ]
+
+
 @router.post("/products", response_model=ProductDetailResponse, status_code=status.HTTP_201_CREATED, summary="Create a new product")
 def create_product(
     payload: AdminProductCreateRequest,
@@ -364,14 +499,38 @@ def update_product(
     )
 
 
-@router.delete("/products/{product_id}", response_model=MessageResponse, summary="Deactivate a product (soft delete)")
-def deactivate_product(
+@router.put("/products/{product_id}/toggle-status", response_model=MessageResponse, summary="Toggle product active/archive status")
+def toggle_product_status(
     product_id: int,
     current_admin: Admin = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
-    Deactivates a product (`is_active = FALSE`) to protect past order line items.
+    Toggles product active status between Active and Archived.
+    """
+    prod = db.query(Product).filter(Product.product_id == product_id).first()
+    if not prod:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Product #{product_id} not found.")
+
+    prod.is_active = not prod.is_active
+    db.commit()
+    status_label = "Activated" if prod.is_active else "Archived / Deactivated"
+    return MessageResponse(
+        message=f"Product #{product_id} ('{prod.product_name}') has been {status_label}.",
+        status="success"
+    )
+
+
+@router.delete("/products/{product_id}", response_model=MessageResponse, summary="Safely remove or archive a product")
+def delete_or_archive_product(
+    product_id: int,
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Safely deletes a product if it has no past order history.
+    If linked to historical customer orders, archives it (is_active = FALSE)
+    to protect database referential integrity.
     """
     prod = db.query(Product).filter(Product.product_id == product_id).first()
     if not prod:
@@ -380,11 +539,23 @@ def deactivate_product(
             detail=f"Product #{product_id} not found."
         )
 
-    prod.is_active = False
+    order_count = db.query(OrderDetail).filter(OrderDetail.product_id == product_id).count()
+    if order_count > 0:
+        prod.is_active = False
+        db.commit()
+        return MessageResponse(
+            message=f"Product #{product_id} ('{prod.product_name}') has been archived/deactivated. It cannot be permanently deleted because it is referenced in {order_count} historical customer order(s).",
+            status="success"
+        )
+
+    db.query(Cart).filter(Cart.product_id == product_id).delete()
+    db.query(Review).filter(Review.product_id == product_id).delete()
+    db.query(Inventory).filter(Inventory.product_id == product_id).delete()
+    db.delete(prod)
     db.commit()
 
     return MessageResponse(
-        message=f"Product #{product_id} ('{prod.product_name}') has been deactivated.",
+        message=f"Product #{product_id} ('{prod.product_name}') has been safely deleted.",
         status="success"
     )
 
@@ -392,6 +563,39 @@ def deactivate_product(
 # ============================================================================
 # 4. Category Management (Admin CRUD)
 # ============================================================================
+@router.get("/categories", response_model=List[CategoryResponse], summary="List all categories for admin management")
+def list_admin_categories(
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns all categories (both active and inactive) with product count.
+    """
+    results = (
+        db.query(
+            Category,
+            func.count(Product.product_id).label("product_count")
+        )
+        .outerjoin(Product, Product.category_id == Category.category_id)
+        .group_by(Category.category_id)
+        .order_by(Category.category_id.asc())
+        .all()
+    )
+    return [
+        CategoryResponse(
+            category_id=cat.category_id,
+            category_name=cat.category_name,
+            slug=cat.slug,
+            description=cat.description,
+            image_url=cat.image_url,
+            is_active=cat.is_active,
+            created_at=cat.created_at,
+            product_count=p_cnt
+        )
+        for cat, p_cnt in results
+    ]
+
+
 @router.post("/categories", response_model=CategoryResponse, status_code=status.HTTP_201_CREATED, summary="Create a new category")
 def create_category(
     payload: AdminCategoryCreateRequest,
@@ -426,6 +630,80 @@ def create_category(
         is_active=new_cat.is_active,
         product_count=0,
         created_at=new_cat.created_at or datetime.utcnow()
+    )
+
+
+@router.put("/categories/{category_id}", response_model=CategoryResponse, summary="Update category details")
+def update_category(
+    category_id: int,
+    payload: AdminCategoryUpdateRequest,
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Updates category attributes such as name, description, image, or active status.
+    """
+    cat = db.query(Category).filter(Category.category_id == category_id).first()
+    if not cat:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Category #{category_id} not found."
+        )
+
+    update_data = payload.model_dump(exclude_unset=True)
+    for field, val in update_data.items():
+        if val is not None and hasattr(cat, field):
+            setattr(cat, field, val.strip() if isinstance(val, str) else val)
+
+    db.commit()
+    db.refresh(cat)
+    prod_count = len(cat.products)
+
+    return CategoryResponse(
+        category_id=cat.category_id,
+        category_name=cat.category_name,
+        slug=cat.slug,
+        description=cat.description,
+        image_url=cat.image_url,
+        is_active=cat.is_active,
+        product_count=prod_count,
+        created_at=cat.created_at
+    )
+
+
+@router.delete("/categories/{category_id}", response_model=MessageResponse, summary="Safely delete a category")
+def delete_category(
+    category_id: int,
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Safely deletes a category only if no products are associated.
+    Prevents orphaned products by throwing a descriptive error.
+    """
+    cat = db.query(Category).filter(Category.category_id == category_id).first()
+    if not cat:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Category #{category_id} not found."
+        )
+
+    prod_count = db.query(Product).filter(Product.category_id == category_id).count()
+    if prod_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Cannot delete category '{cat.category_name}' because {prod_count} product(s) are currently associated with it. "
+                "To prevent orphaned products, please reassign or archive those products first, or mark this category as Inactive."
+            )
+        )
+
+    db.delete(cat)
+    db.commit()
+
+    return MessageResponse(
+        message=f"Category #{category_id} ('{cat.category_name}') has been deleted.",
+        status="success"
     )
 
 
